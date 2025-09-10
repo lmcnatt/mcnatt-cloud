@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
+    "deploy": "bash scripts/deploy.sh",
     "start": "next start"
   },
   "dependencies": {
