@@ -8,9 +8,9 @@ CONFIG_FILE="$PROJECT_ROOT/deploy.config.json"
 
 # Check if config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "❌ Error: deploy.config.json not found!"
-    echo "Please copy deploy.config.template.json to deploy.config.json and update it with your settings."
-    exit 1
+  echo "❌ Error: deploy.config.json not found!"
+  echo "Please copy deploy.config.template.json to deploy.config.json and update it with your settings."
+  exit 1
 fi
 
 # Load configuration
@@ -34,11 +34,11 @@ scp deployment.tar.gz "$SERVER_USER@$SERVER_HOST:$DEPLOY_PATH"
 
 echo "🎉 Deploying on server..."
 ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_PATH && \
-    tar -xzvf deployment.tar.gz && \
-    npm install --omit=dev && \
-    npm run build && \
-    pm2 delete $PM2_APP_NAME 2>/dev/null || true && \
-    PORT=3000 pm2 start npm --name $PM2_APP_NAME -- start"
+  tar -xzvf deployment.tar.gz && \
+  npm install --omit=dev && \
+  npm run build && \
+  pm2 delete $PM2_APP_NAME 2>/dev/null || true && \
+  PORT=3000 pm2 start npm --name $PM2_APP_NAME -- start"
 
 echo "🧹 Cleaning up deployment package..."
 ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_PATH && rm deployment.tar.gz"
