@@ -9,7 +9,6 @@ CONFIG_FILE="$PROJECT_ROOT/deploy.config.json"
 # Check if config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
   echo "❌ Error: deploy.config.json not found!"
-  echo "Please copy deploy.config.template.json to deploy.config.json and update it with your settings."
   exit 1
 fi
 
@@ -19,26 +18,25 @@ SERVER_USER=$(cat "$CONFIG_FILE" | jq -r '.server.user')
 DEPLOY_PATH=$(cat "$CONFIG_FILE" | jq -r '.server.deployPath')
 PM2_APP_NAME=$(cat "$CONFIG_FILE" | jq -r '.server.pm2AppName')
 
-echo "📋 Using deployment configuration for $SERVER_USER@$SERVER_HOST"
 echo "🔥 Building Next.js app..."
-npm run build
-
-echo "🧹 Pruning dev dependencies..."
-npm prune --omit=dev
+pnpm run build
 
 echo "📦 Creating deployment package..."
-tar -czvf deployment.tar.gz .next public node_modules package.json next.config.ts
+tar -czvf deployment.tar.gz .next public node_modules package.json
 
 echo "🚀 Uploading to server..."
 scp deployment.tar.gz "$SERVER_USER@$SERVER_HOST:$DEPLOY_PATH"
 
 echo "🎉 Deploying on server..."
 ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_PATH && \
+  # Clean up old files
+  rm -rf .next node_modules && \
+  # Extract new files
   tar -xzvf deployment.tar.gz && \
-  npm install --omit=dev && \
-  npm run build && \
-  pm2 delete $PM2_APP_NAME 2>/dev/null || true && \
-  PORT=3000 pm2 start npm --name $PM2_APP_NAME -- start"
+  # Start the app with PM2
+  pm2 restart $PM2_APP_NAME && \
+  # Save PM2 config to persist across reboots
+  pm2 save"
 
 echo "🧹 Cleaning up deployment packages..."
 # Clean up on server
