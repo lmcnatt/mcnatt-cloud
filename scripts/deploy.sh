@@ -40,8 +40,11 @@ ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_PATH && \
   pm2 delete $PM2_APP_NAME 2>/dev/null || true && \
   PORT=3000 pm2 start npm --name $PM2_APP_NAME -- start"
 
-echo "🧹 Cleaning up deployment package..."
+echo "🧹 Cleaning up deployment packages..."
+# Clean up on server
 ssh "$SERVER_USER@$SERVER_HOST" "cd $DEPLOY_PATH && rm deployment.tar.gz"
+# Clean up locally
+rm deployment.tar.gz
 
 echo "🔍 Checking deployment status..."
 ssh "$SERVER_USER@$SERVER_HOST" "pm2 show $PM2_APP_NAME"
